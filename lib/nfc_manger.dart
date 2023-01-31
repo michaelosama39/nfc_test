@@ -13,6 +13,8 @@ class NfcMangerScreen extends StatefulWidget {
 class _NfcMangerScreenState extends State<NfcMangerScreen> {
   ValueNotifier<dynamic> result = ValueNotifier(null);
 
+  final serialController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,6 +45,30 @@ class _NfcMangerScreenState extends State<NfcMangerScreen> {
                     ),
                     Flexible(
                       flex: 3,
+                      child: TextFormField(
+                        controller: serialController,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter your serial',
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black26),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black26),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey),
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black26),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      flex: 3,
                       child: GridView.count(
                         padding: EdgeInsets.all(4),
                         crossAxisCount: 2,
@@ -53,7 +79,9 @@ class _NfcMangerScreenState extends State<NfcMangerScreen> {
                           ElevatedButton(
                               child: Text('Tag Read'), onPressed: _tagRead),
                           ElevatedButton(
-                              child: Text('Ndef Write'), onPressed: _ndefWrite),
+                              child: Text('Ndef Write'), onPressed: (){
+                            _ndefWrite(serialController.text);
+                          }),
                           ElevatedButton(
                               child: Text('Ndef Write Lock'),
                               onPressed: _ndefWriteLock),
@@ -73,14 +101,11 @@ class _NfcMangerScreenState extends State<NfcMangerScreen> {
       final ndef = Ndef.from(tag);
       String tagRecordText =
           String.fromCharCodes(ndef!.cachedMessage!.records[0].payload);
-      print('------------------------');
-      print(tagRecordText);
-      print('------------------------');
       NfcManager.instance.stopSession();
     });
   }
 
-  void _ndefWrite() {
+  void _ndefWrite(String serial) {
     NfcManager.instance.startSession(onDiscovered: (NfcTag tag) async {
       var ndef = Ndef.from(tag);
       if (ndef == null || !ndef.isWritable) {
@@ -90,7 +115,7 @@ class _NfcMangerScreenState extends State<NfcMangerScreen> {
       }
 
       NdefMessage message = NdefMessage([
-        NdefRecord.createText('123456'),
+        NdefRecord.createText(serial),
         NdefRecord.createUri(
             Uri.parse('https://www.linkedin.com/in/michael-osama-7283bb199/')),
         NdefRecord.createMime(
